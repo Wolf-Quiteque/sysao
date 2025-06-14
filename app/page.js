@@ -1,7 +1,24 @@
+"use client";
+
 import { ArrowUpRight, Check, CheckCircle, ChevronDown, Chrome, Lock, MessageSquare, PlayCircle, Smartphone, Zap } from 'lucide-react';
 import Head from 'next/head';
+import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import AuthModal from '../components/AuthModal';
 
 export default function Home() {
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { data: session } = useSession();
+
+  const handlePlanSelect = (plan) => {
+    if (!session) {
+      setSelectedPlan(plan);
+      setShowAuthModal(true);
+      return;
+    }
+    // Processar pagamento...
+  };
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <Head>
@@ -188,7 +205,10 @@ export default function Home() {
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2">Grátis</div>
                   <p className="text-sm text-gray-500 mb-6">Licença gratuita para teste</p>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition">
+                  <button 
+                    onClick={() => handlePlanSelect(plans[0])}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition"
+                  >
                     TESTAR agora
                   </button>
                 </div>
@@ -212,7 +232,10 @@ export default function Home() {
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2">129.900 Kzs</div>
                   <p className="text-sm text-gray-500 mb-6">Licença válida para 12 meses</p>
-                  <button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium transition">
+                  <button 
+                    onClick={() => handlePlanSelect(plans[1])}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium transition"
+                  >
                     Comprar agora
                   </button>
                 </div>
@@ -236,7 +259,10 @@ export default function Home() {
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2">249.900 Kzs</div>
                   <p className="text-sm text-gray-500 mb-6">Licenças válidas para 12 meses</p>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition">
+                  <button 
+                    onClick={() => handlePlanSelect(plans[2])}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition"
+                  >
                     Comprar agora
                   </button>
                 </div>
@@ -245,6 +271,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {showAuthModal && (
+        <AuthModal 
+          onClose={() => setShowAuthModal(false)}
+          plan={selectedPlan}
+        />
+      )}
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 bg-white">
@@ -306,6 +339,27 @@ export default function Home() {
     </div>
   );
 }
+
+const plans = [
+  {
+    name: "Licença GRATUITA",
+    price: "Grátis",
+    duration: "Licença gratuita para teste",
+    features: ["Envio de 5 mensagens em massa por dia"]
+  },
+  {
+    name: "1 Licença Premium",
+    price: "129.900 Kzs",
+    duration: "Licença válida para 12 meses",
+    features: ["Mensagens em massa sem limitações"]
+  },
+  {
+    name: "2 Licenças Premium",
+    price: "249.900 Kzs",
+    duration: "Licenças válidas para 12 meses",
+    features: ["Mensagens em massa sem limitações"]
+  }
+];
 
 const faqData = [
   {
