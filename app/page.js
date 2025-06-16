@@ -49,26 +49,30 @@ export default function Home() {
           </nav>
           
           {session ? (
-            <div className="flex items-center space-x-4">
-              <div 
-                className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold cursor-pointer"
-                onClick={() => router.push('/dashboard')}
-              >
-                {session.user?.name ? `${session.user.name.split(' ')[0][0]}${session.user.name.split(' ').length > 1 ? session.user.name.split(' ')[session.user.name.split(' ').length - 1][0] : ''}`.toUpperCase() : 'U'}
-              </div>
-              <button 
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center transition cursor-pointer"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full flex items-center transition cursor-pointer">
-              <span>Faça um teste grátis</span>
-              <ArrowUpRight size={18} className="ml-1" />
-            </button>
-          )}
+  <div className="flex items-center space-x-4">
+    <div 
+      className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold cursor-pointer"
+      onClick={() => router.push('/dashboard')}
+    >
+      {session.user?.name
+        ? `${session.user.name.split(' ')[0][0]}${session.user.name.split(' ').length > 1 ? session.user.name.split(' ')[session.user.name.split(' ').length - 1][0] : ''}`.toUpperCase()
+        : 'U'}
+    </div>
+    <button 
+      onClick={() => signOut({ callbackUrl: '/' })}
+      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center transition cursor-pointer text-sm sm:text-base"
+    >
+      Logout
+    </button>
+  </div>
+) : (
+  <button 
+    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-full flex items-center transition cursor-pointer text-sm sm:text-base max-w-[180px] sm:max-w-none overflow-hidden whitespace-nowrap text-ellipsis"
+  >
+    <span className="truncate">Faça um teste grátis</span>
+    <ArrowUpRight size={18} className="ml-1 shrink-0" />
+  </button>
+)}
         </div>
       </header>
 
