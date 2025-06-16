@@ -17,7 +17,7 @@ export default function DashboardPage() {
     } else if (status === 'authenticated') {
       fetchPlanStatus();
     }
-  }, [status, router]);
+  }, [status]); // Removed router from dependency array
 
   const fetchPlanStatus = async () => {
     try {
@@ -26,7 +26,7 @@ export default function DashboardPage() {
       if (res.ok) {
         const data = await res.json();
         setHasActivePlan(data.hasActivePlan);
-        setPendingPayments(data.pendingPayments);
+        setPendingPayments(data.pendingPayments || []); // Ensure array fallback
       } else {
         console.error('Failed to fetch plan status');
       }
@@ -59,8 +59,14 @@ export default function DashboardPage() {
   ];
 
   const handlePlanClick = (plan) => {
-    const amount = plan.price === "Grátis" ? 0 : parseFloat(plan.price.replace('.', '').replace(' Kzs', ''));
-    router.push(`/checkout?planName=${plan.name}&amount=${amount}`);
+    if (plan.price === "Grátis") {
+      router.push(`/checkout?planName=${encodeURIComponent(plan.name)}&amount=0`);
+    } else {
+      const cleanAmount = plan.price
+        .replace(/\./g, '') // Remove all dots
+        .replace(' Kzs', ''); // Remove currency
+      router.push(`/checkout?planName=${encodeURIComponent(plan.name)}&amount=${cleanAmount}`);
+    }
   };
 
   if (status === 'loading') {
@@ -71,8 +77,13 @@ export default function DashboardPage() {
     );
   }
 
+  // Prevent rendering dashboard if unauthenticated
+  if (status === 'unauthenticated') {
+    return null;
+  }
+
   const userName = session?.user?.name || 'Utilizador';
-  const companyName = "SYS.AO"; // Placeholder for company name
+  const companyName = "SYS.AO";
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -96,7 +107,7 @@ export default function DashboardPage() {
       <div className="container mx-auto p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Bem-vindo ao seu Painel, {userName}!</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Example Dashboard Cards */}
+          {/* Dashboard Cards */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">Minhas Subscrições</h2>
             <p className="text-gray-600">Visualize e gerencie seus planos ativos.</p>
@@ -114,7 +125,6 @@ export default function DashboardPage() {
         {loadingPlans ? (
           <div className="text-center py-8">
             <p className="text-lg text-gray-700">A verificar o seu plano...</p>
-            {/* Add a simple loader animation here */}
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mt-4"></div>
           </div>
         ) : (
@@ -157,10 +167,10 @@ export default function DashboardPage() {
                     <div key={payment.referenceId} className="bg-yellow-100 p-6 rounded-lg shadow-md border border-yellow-300">
                       <h3 className="text-xl font-semibold text-yellow-800 mb-2">Referência de Pagamento</h3>
                       <p className="text-3xl font-bold text-yellow-900 mb-4">{payment.referenceId}</p>
-                      <p className="text-gray-700">Plano: {payment.planId}</p>
+                      <p className="text-gray-700">Plano: {payment.planName}</p> {/* Changed from planId to planName */}
                       <p className="text-gray-700">Valor: AOA {parseFloat(payment.amount).toFixed(2)}</p>
                       <p className="text-gray-700">Status: <span className="font-semibold text-yellow-700">Pendente</span></p>
-                      <p className="text-sm text-gray-500 mt-2">Gerado em: {new Date(payment.createdAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-500 mt-2">Gerado em: {new Date(payment.createdAt).toLocaleDateString('pt-AO')}</p>
                       <p className="text-sm text-gray-500">Aguardando confirmação do pagamento.</p>
                     </div>
                   ))}
