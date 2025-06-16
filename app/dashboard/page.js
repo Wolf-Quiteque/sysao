@@ -60,8 +60,12 @@ export default function DashboardPage() {
   ];
 
   const handlePlanClick = (plan) => {
-  router.push(`/checkout?planId=${plan.id}&amount=${plan.price}&planName=${encodeURIComponent(plan.name)}`);
-};
+    router.push(`/checkout?planId=${plan.id}&amount=${plan.price}&planName=${encodeURIComponent(plan.name)}`);
+  };
+
+  const isPlanPending = (planId) => {
+    return pendingPayments.some((p) => p.planId === planId);
+  };
 
   if (status === 'loading') {
     return <div className="min-h-screen flex justify-center items-center">A carregar...</div>;
@@ -81,18 +85,58 @@ export default function DashboardPage() {
 
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-6">Escolha o seu Plano</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map(plan => (
-            <div key={plan.id} onClick={() => handlePlanClick(plan)} className="cursor-pointer p-6 bg-white rounded-lg shadow hover:shadow-lg transition">
-              <h2 className="text-xl font-bold text-green-600">{plan.name}</h2>
-              <p className="text-gray-800 text-2xl my-2">{plan.price === 0 ? 'Grátis' : `${plan.price.toLocaleString('pt-AO')} Kzs`}</p>
-              <p className="text-gray-600">{plan.duration}</p>
-              <ul className="mt-4 text-sm text-gray-700 list-disc ml-5">
-                {plan.features.map((f, i) => <li key={i}>{f}</li>)}
-              </ul>
-              <button className="mt-4 bg-green-500 text-white px-4 py-2 rounded-full">Comprar Agora</button>
+
+        {hasActivePlan && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded text-green-800">
+            ✅ Você já possui um plano ativo!
+          </div>
+        )}
+
+        {pendingPayments.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4">⏳ Pagamentos Pendentes</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pendingPayments.map((payment) => (
+                <div key={payment.referenceId} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-yellow-800">Referência: {payment.referenceId}</h3>
+                  <p className="text-gray-700">Plano: {payment.planName}</p>
+                  <p className="text-gray-700">Valor: {payment.amount.toLocaleString('pt-AO')} Kzs</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Criado em: {new Date(payment.createdAt).toLocaleDateString('pt-AO')}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {plans.map(plan => {
+            const isPending = isPlanPending(plan.id);
+            return (
+              <div key={plan.id} className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition">
+                <h2 className="text-xl font-bold text-green-600">{plan.name}</h2>
+                <p className="text-gray-800 text-2xl my-2">
+                  {plan.price === 0 ? 'Grátis' : `${plan.price.toLocaleString('pt-AO')} Kzs`}
+                </p>
+                <p className="text-gray-600">{plan.duration}</p>
+                <ul className="mt-4 text-sm text-gray-700 list-disc ml-5">
+                  {plan.features.map((f, i) => <li key={i}>{f}</li>)}
+                </ul>
+                <button
+                  onClick={() => handlePlanClick(plan)}
+                  disabled={isPending}
+                  className={`mt-4 px-4 py-2 rounded-full text-white transition ${
+                    isPending
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  {isPending ? 'Pendente...' : 'Comprar Agora'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
