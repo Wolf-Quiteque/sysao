@@ -5,8 +5,10 @@ import Head from 'next/head';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import AuthModal from '../components/AuthModal';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { data: session } = useSession();
@@ -35,6 +37,7 @@ export default function Home() {
               alt="SYS.AO Logo" 
               className="h-16 w-16 border-none ring-0"
             />
+            <span className="ml-2 text-xl font-bold text-green-600">SYS.AO</span>
           </div>
           
           <nav className="hidden md:flex space-x-8">
@@ -45,10 +48,27 @@ export default function Home() {
             <a href="#faq" className="hover:text-green-600 transition">FAQ</a>
           </nav>
           
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full flex items-center transition">
-            <span>Faça um teste grátis</span>
-            <ArrowUpRight size={18} className="ml-1" />
-          </button>
+          {session ? (
+            <div className="flex items-center space-x-4">
+              <div 
+                className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold cursor-pointer"
+                onClick={() => router.push('/dashboard')}
+              >
+                {session.user?.name ? `${session.user.name.split(' ')[0][0]}${session.user.name.split(' ').length > 1 ? session.user.name.split(' ')[session.user.name.split(' ').length - 1][0] : ''}`.toUpperCase() : 'U'}
+              </div>
+              <button 
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center transition cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full flex items-center transition cursor-pointer">
+              <span>Faça um teste grátis</span>
+              <ArrowUpRight size={18} className="ml-1" />
+            </button>
+          )}
         </div>
       </header>
 
@@ -207,7 +227,7 @@ export default function Home() {
                   <p className="text-sm text-gray-500 mb-6">Licença gratuita para teste</p>
                   <button 
                     onClick={() => handlePlanSelect(plans[0])}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition cursor-pointer"
                   >
                     TESTAR agora
                   </button>
@@ -234,7 +254,7 @@ export default function Home() {
                   <p className="text-sm text-gray-500 mb-6">Licença válida para 12 meses</p>
                   <button 
                     onClick={() => handlePlanSelect(plans[1])}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium transition"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium transition cursor-pointer"
                   >
                     Comprar agora
                   </button>
@@ -261,7 +281,7 @@ export default function Home() {
                   <p className="text-sm text-gray-500 mb-6">Licenças válidas para 12 meses</p>
                   <button 
                     onClick={() => handlePlanSelect(plans[2])}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition cursor-pointer"
                   >
                     Comprar agora
                   </button>

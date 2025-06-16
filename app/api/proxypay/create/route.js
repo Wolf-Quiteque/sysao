@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import User from '../../../../models/User';
+import User from '../../../../models/User'; // Keep User import for now, might be needed for other things
+import Payment from '../../../../models/Payment';
 import dbConnect from '../../../../lib/dbConnect';
 
 export async function POST(req) {
@@ -9,25 +10,47 @@ export async function POST(req) {
   try {
     await dbConnect();
     
-    // Criar referência de pagamento
-    const response = await axios.post(
-      `${process.env.PROXYPAY_API_URL}/references`,
+    // 1. Gerar um ID de referência único
+    const referenceIdResponse = await axios.post(
+      `${process.env.PROXYPAY_API_URL}/reference_ids`,
+      {},
       {
-        amount: amount * 100,
-        expiry_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        custom_data: { userId, planId }
-      },
-      { headers: { Authorization: `Bearer ${process.env.PROXYPAY_API_KEY}` } }
-    );
-
-    // Salvar pagamento no usuário
-    await User.findByIdAndUpdate(userId, {
-      $push: {
-        payments: {
-          id: response.data.reference,
-          license
-        }
+        headers: {
+          Authorization: `Token ${process.env.PROXYPAY_API_KEY}`,
+          Accept: 'application/vnd.proxypay.v2+json',
+        },
       }
+    );
+    const referenceId = referenceIdResponse.data;
+
+    // 2. Criar ou atualizar a referência de pagamento com o ID gerado
+    const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 3 days from now
+    await axios.put(
+      `${process.env.PROXYPAY_API_URL}/references/${referenceId}`,
+      {
+        amount: amount.toFixed(2), // Ensure amount is a string with 2 decimal places
+        end_datetime: expiryDate,
+        custom_fields: { userId, planId, license } // Pass custom fields
+      },
+      {
+        headers: {
+          Authorization: `Token ${process.env.PROXYPAY_API_KEY}`,
+          Accept: 'application/vnd.proxypay.v2+json',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    
+    const response = { data: { reference: referenceId } }; // Mimic original response structure
+
+    // Salvar pagamento na coleção de pagamentos
+    await Payment.create({
+      userId,
+      referenceId: response.data.reference,
+      amount: amount.toFixed(2),
+      planId,
+      license,
+      status: 'pending', // Initial status
     });
 
     return NextResponse.json({ 

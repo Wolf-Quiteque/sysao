@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 export default function AuthModal({ onClose, plan }) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +19,27 @@ export default function AuthModal({ onClose, plan }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success('Login realizado com sucesso!');
+        router.push('/dashboard'); // Redirect to dashboard
+        onClose();
+      }
+    } catch (error) {
+      toast.error('Erro ao fazer login');
+    }
+  };
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
@@ -26,15 +49,16 @@ export default function AuthModal({ onClose, plan }) {
         password: formData.password,
         redirect: false
       });
-      onClose();
       toast.success('Cadastro realizado com sucesso!');
+      router.push('/dashboard'); // Redirect to dashboard
+      onClose();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Erro no cadastro');
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 moving-gradient-background">
       <div className="bg-white p-8 rounded-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6">
           {isLogin ? 'Login' : 'Cadastrar-se'}
@@ -44,7 +68,7 @@ export default function AuthModal({ onClose, plan }) {
             Para adquirir o plano {plan?.name}, complete seu cadastro
           </p>
         )}
-        <form onSubmit={isLogin ? handleSubmit : handleSignUp}>
+        <form onSubmit={isLogin ? handleLogin : handleSignUp}>
           {!isLogin && (
             <>
               <div className="mb-4">
