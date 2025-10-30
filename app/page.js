@@ -87,7 +87,7 @@ export default function Home() {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              TRANSFORME CONVERSAS EM VENDAS
+              TRANSFORME CONVERSAS EM OPORTUNIDADS
             </h1>
             
             <h2 className="text-2xl md:text-3xl font-bold text-green-600 mb-6">
